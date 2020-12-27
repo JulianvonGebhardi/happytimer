@@ -1,4 +1,4 @@
-# For a fully functionally app you have to delete the script tag in the build index.html. Otherwise the content script will be loaded in the app.js and for the entire browser. 
+# For a functionally chrome extension app you have to delete the content-script tag in the index.html in the build folder (after running the build script). Otherwise the content script will be loaded twice.
 
 # React Chrome Extension
 We have open sourced the boilerplate of chrome extension with ReactJs using inject page strategy. Read [detailed blog](https://medium.com/@satendra02/create-chrome-extension-with-reactjs-using-inject-page-strategy-137650de1f39)
