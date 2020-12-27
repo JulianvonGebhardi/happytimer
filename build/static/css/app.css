@@ -1,0 +1,424 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-size:16px!important;
+  
+  }
+:root{
+  font-size:16px!important;
+  line-height: 1.2;
+}
+
+#mainTimer{
+  position:fixed;
+  z-index: 10000;
+  right:0;
+  top:calc(50% - 30px);
+}
+#mainTimer .timerContainer{
+  box-sizing:border-box!important;
+  overflow: hidden;
+  height: 60px;
+  width:50px;
+  border: 3px solid #82828266;
+  border-radius: 20px 0px 0px 20px;
+  cursor: pointer;
+}
+#mainTimer .timerContainer .timerIcon{
+  margin:14.25px 11.3px 14.25px 11.7px 
+}
+#mainTimer .timerContainer:hover{
+  border:3px solid #F76B1C;
+  background-color:#F76B1C;
+}
+#mainTimer .timerContainer .timerIcon path{
+  fill:#82828266;
+  }
+#mainTimer .timerContainer:hover .timerIcon path{
+  
+  fill:white;
+  }
+#mainTimer .mainPopupWrapper,#mainTimer .runOutPopupWrapper,#mainTimer .timeRuningPopupWrapper{
+  box-sizing:border-box!important;
+  font-family: poppins;
+  position: fixed;
+  top:0;
+  bottom: 0;
+  left:0;
+  right:0;
+  background-color: rgba(0,0,0, 0.3); 
+  z-index:1000000;
+  
+}
+
+#mainTimer .runOutPopupWrapper .popupContainer,#mainTimer .mainPopupWrapper .popupContainer,#mainTimer .timeRuningPopupWrapper .popupContainer{ 
+  font-family: poppins !important;
+  position: absolute;
+  background-color: white;
+  box-sizing:border-box!important;
+  top: 50%;
+  left: 50%;
+  width: 413px;
+  height: 410px;  
+  border: double 4px transparent;
+  border-radius: 20px;
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(to right, #F76B1C, #FAD961);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  transform: translate(-50%, -50%)
+
+}
+#mainTimer .runOutPopupWrapper .popupContainer{
+  width: 413px;
+  height: 312px;
+}
+#mainTimer .timeRuningPopupWrapper .popupContainer{
+  width: 413px;
+  height: 386px;
+}
+#mainTimer .mainPopupWrapper .closePopup,#mainTimer .runOutPopupWrapper .closePopup,#mainTimer .timeRuningPopupWrapper .closePopup{
+  box-sizing:border-box!important;
+  height:32px;
+  line-height: 20px;
+  position: relative;  
+}
+#mainTimer .mainPopupWrapper .closePopup button,#mainTimer .runOutPopupWrapper .closePopup button,#mainTimer .timeRuningPopupWrapper .closePopup button{
+  line-height:17.16px;
+  font-family: poppins;
+  border:2px solid #FAD961 !important;
+  outline:0;
+  color :#FAD961;
+  background-color: transparent;
+  width:23px;
+  height:23px;
+  margin:11px 11px 0 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 2px 5px;
+  overflow: hidden;
+  box-sizing: border-box!important;
+  cursor:pointer;
+  min-height: 0;
+  min-width:0;
+  box-shadow: none;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  transition: background-color 0.2s
+}
+#mainTimer .mainPopupWrapper .closePopup button:hover,#mainTimer .runOutPopupWrapper .closePopup button:hover,#mainTimer .timeRuningPopupWrapper .closePopup button:hover{
+  border:2px solid #f8cd30;
+  color :#f8cd30;
+  outline:0;
+  background-color: transparent; 
+}
+#mainTimer .mainPopupWrapper .header,#mainTimer .runOutPopupWrapper .header,#mainTimer .timeRuningPopupWrapper .header{
+  box-sizing:border-box!important;
+  line-height: 1.2;
+  height: 35px;
+  font-weight:bold;
+  font-size:1.5625rem;
+  text-align: center;
+  margin-bottom: 18px;
+  color:#0F0F0F
+}
+#mainTimer .timeRuningPopupWrapper .timer{
+  box-sizing: border-box;
+  width: 100%;
+  height: 108px;
+  background-image:linear-gradient(to right, #F76B1C, #FAD961);
+}
+#mainTimer .timeRuningPopupWrapper .timer .timeRuned{
+  padding:34px 0;
+  margin:0;
+  text-align: center;
+  color:white;
+  text-shadow: 0px 1px 1px #00000038;
+  font-size: 30px;
+  line-height: 1.3em;
+}
+#mainTimer .timeRuningPopupWrapper .timeform{
+  padding: 0 110px;
+  margin-top: 23px;
+}
+
+#mainTimer .runOutPopupWrapper .content{
+  box-sizing: border-box;
+  background-image:  linear-gradient(90deg,#F76B1C, #FAD961) ;
+  height:108px;
+  padding:22px 38px 0 38px;
+  color:white
+}
+#mainTimer .runOutPopupWrapper .content div:first-child{
+  font-size: 1.875rem;
+  font-weight: bold;
+  text-align: center;
+}
+#mainTimer .runOutPopupWrapper .content div:nth-child(2){
+  font-size: 1.375rem;
+  font-weight: 500;
+  text-align: center;
+}
+#mainTimer .runOutPopupWrapper .actionContainer{
+  margin-top: 15px;
+  padding: 0 40px;
+  display:flex;
+  justify-content: space-between;
+}
+#mainTimer .runOutPopupWrapper .actionContainer .text{
+  color:#2E2E2E;
+  font-size: 1.125rem;
+  text-align: center;
+  margin-bottom: 7px;
+}
+#mainTimer .runOutPopupWrapper .actionContainer button, #mainTimer .timebuttons button{
+  font-family: poppins;
+  background-color: #F76B1C;
+  border-radius: 4px;
+  width: 140px;
+  height: 38px;
+  outline: 0;
+  border:0;
+  font-size: 0.9375rem;
+  color:white;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+#mainTimer .timebuttons button{
+  width:117px;
+  cursor: pointer;
+}
+#mainTimer .mainPopupWrapper .timeSelection{
+  line-height:1.2;
+  box-sizing:border-box!important;
+  color:#3E3E3E;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 144px;
+  height: 48px;
+  padding: 13px 0;
+  text-align:center;
+  margin:auto;
+  border-bottom:2px solid #E8E8E8 ;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+#mainTimer .mainPopupWrapper .timeSelection:hover{
+  background: #FAD961;
+ }
+ #mainTimer .mainPopupWrapper .timeInputLabel,#mainTimer .timeRuningPopupWrapper .timeform .timeInputLabel{
+  line-height:1.2;
+  box-sizing:border-box!important;
+  color:rgba(62,62,62,0.4);
+  font-size: 0.8125rem;
+  font-weight: bold;
+  margin: 21px 80px 6px 0px !important;
+  text-align: center; 
+}
+
+
+#mainTimer .mainPopupWrapper .timeInput,#mainTimer .timeRuningPopupWrapper .timeform .timeInput{
+  box-sizing:border-box!important;
+  color: #F76B1C;
+  font-size:1.375rem;
+  font-weight:600;
+  width:193px;
+  outline: 0;
+  border: 0;
+  border-bottom:2px solid #707070;
+  padding:3px 7.5px;
+  background-color: #FAD9615B;
+  letter-spacing: 0.8px;
+  margin: 0 auto;
+  display: block;
+  
+}
+
+#mainTimer .timeRuningPopupWrapper  .timebuttons{
+  margin-top:39px;
+  display: flex;
+  justify-content: space-between;
+  padding:0 51.5px;
+  cursor: pointer;
+  
+}
+
+#mainTimer .mainPopupWrapper .timerStart{
+  font-family: poppins;
+  box-sizing:border-box!important;
+  background-color:#F76B1C ;
+  width: 117px;
+  height: 38px;
+  border-radius: 4px;
+  color:white;
+  font-size:1.25rem ;
+  font-weight: 500;
+  display: block;
+  margin:31px auto;
+  border:0;
+  box-shadow: none;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  
+  
+}
+#mainTimer .timebuttons button, #mainTimer .mainPopupWrapper .timerStart,#mainTimer .actionContainer button{
+  background-image: none!important;
+  padding:8px 10px!important;
+}
+
+.drag {
+  transform: scale(2);
+}
+
+.sideIcon {
+  position:fixed;
+  z-index: 10000;
+  right:0;
+  top:calc(50% - 30px);
+}
+
+#mainTimer {
+  box-sizing:border-box!important;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  z-index:100000000000000000000000000000000000000000000000000000000000
+}
+#mainTimer .arrowContainer .arrowIcon, #mainTimer .arrowContainer .arrowBackIcon{
+  margin:14.25px 11.3px 14.25px 11.7px 
+}
+
+#mainTimer .arrowContainer .arrowIcon path{
+  fill:#cdcdcd;
+}
+#mainTimer .arrowContainer .arrowBackIcon path{
+  fill:#F76B1C;
+}
+#mainTimer .arrowContainer .arrowIcon:hover path{  
+  fill:#F76B1C;
+}
+#mainTimer .timeAnimation{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  color:rgba(0, 0, 0, 1);
+  font-size: 80px;
+  font-weight: 600;
+
+}
+
+#mainTimer .mainPopupWrapper .timerStart:hover{
+  background-color:#e95908;
+}
+.timebuttons button:hover{
+  color:white!important
+}
+#mainTimer .runOutPopupWrapper .actionContainer button:hover, #mainTimer .timebuttons button:hover {
+    background-color:#e95908;
+}
+.popup_container{
+  width: 412px;
+  height: 340px;
+  position: relative;
+}
+
+
+.popup_container .extensionLogo{
+  width:195px;
+  height:37px;
+  margin:25px 0 0 13.84px;
+  display:inline-block;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.popup_container  .extensionVersion{
+  padding: 9px 18px;
+  margin: 25px 0 0 75px;
+  text-align: center;
+  color: white;
+  font-size: 0.875rem;
+  vertical-align: top;
+  display: inline-block;
+  background-color: #FAD961;
+  border-radius: 5px;
+  position: absolute;
+  right: 16.7px;
+}
+
+.popup_container .extContent{
+  padding: 20px 16.7px 13px ;
+  margin-top: 16px;
+  border-top: 1px solid #bbbbbb;;
+}
+.popup_container .extContent .row {
+  margin-bottom: 11.01px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.popup_container .extContent .row .text{
+  vertical-align: top;
+  margin:0;
+  line-height: 0.9;
+  display: inline-block;
+}
+.popup_container .middleContent{
+  width: 411px;
+  height: 108px;
+  color:#FFFFFF;
+  background-image:  linear-gradient(90deg, #FAD45E, #F7852C);
+  position: relative;
+}
+.popup_container .middleContent .timeRuned{
+  padding:34px 0 10px 0;
+  margin:0;
+  text-align: center;
+  color:white;
+  text-shadow: 0px 1px 1px #00000038;
+  font-size:30px
+}
+.popup_container .middleContent .text{    
+  margin:0;
+  padding-top:28px;
+  text-align:center;
+  font-size:1.0625rem;
+}
+.popup_container .feedbackContainer{
+  height:46px;
+  box-sizing: border-box;
+  padding:15px;
+  display:flex;
+  justify-content: space-between;
+}
+.popup_container .feedbackContainer .settings{
+  display: inline-block;
+  width: 16px;
+  height: 13px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  cursor: pointer;
+}
+.popup_container .feedbackContainer .feedbackLink{
+  
+  vertical-align: top;
+  line-height: 1.8;
+  color:#676767;
+  font-size: 0.6875rem;
+}
+
+.author {
+  color: white;
+  position: absolute;
+  right: 20px;
+  margin: 7px 0 0;
+  font-size: 80%
+}
+
+/*# sourceMappingURL=app.css.map*/

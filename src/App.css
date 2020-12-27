@@ -1,0 +1,99 @@
+.popup_container{
+  width: 412px;
+  height: 340px;
+  position: relative;
+}
+
+
+.popup_container .extensionLogo{
+  width:195px;
+  height:37px;
+  margin:25px 0 0 13.84px;
+  display:inline-block;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.popup_container  .extensionVersion{
+  padding: 9px 18px;
+  margin: 25px 0 0 75px;
+  text-align: center;
+  color: white;
+  font-size: 0.875rem;
+  vertical-align: top;
+  display: inline-block;
+  background-color: #FAD961;
+  border-radius: 5px;
+  position: absolute;
+  right: 16.7px;
+}
+
+.popup_container .extContent{
+  padding: 20px 16.7px 13px ;
+  margin-top: 16px;
+  border-top: 1px solid #bbbbbb;;
+}
+.popup_container .extContent .row {
+  margin-bottom: 11.01px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.popup_container .extContent .row .text{
+  vertical-align: top;
+  margin:0;
+  line-height: 0.9;
+  display: inline-block;
+}
+.popup_container .middleContent{
+  width: 411px;
+  height: 108px;
+  color:#FFFFFF;
+  background-image:  linear-gradient(90deg, #FAD45E, #F7852C);
+  position: relative;
+}
+.popup_container .middleContent .timeRuned{
+  padding:34px 0 10px 0;
+  margin:0;
+  text-align: center;
+  color:white;
+  text-shadow: 0px 1px 1px #00000038;
+  font-size:30px
+}
+.popup_container .middleContent .text{    
+  margin:0;
+  padding-top:28px;
+  text-align:center;
+  font-size:1.0625rem;
+}
+.popup_container .feedbackContainer{
+  height:46px;
+  box-sizing: border-box;
+  padding:15px;
+  display:flex;
+  justify-content: space-between;
+}
+.popup_container .feedbackContainer .settings{
+  display: inline-block;
+  width: 16px;
+  height: 13px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  cursor: pointer;
+}
+.popup_container .feedbackContainer .feedbackLink{
+  
+  vertical-align: top;
+  line-height: 1.8;
+  color:#676767;
+  font-size: 0.6875rem;
+}
+
+.author {
+  color: white;
+  position: absolute;
+  right: 20px;
+  margin: 7px 0 0;
+  font-size: 80%
+}
