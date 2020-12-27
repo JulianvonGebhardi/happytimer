@@ -1,5 +1,8 @@
 # For a functionally chrome extension app you have to delete the content-script tag in the index.html in the build folder (after running the build script). Otherwise the content script will be loaded twice.
 
+# Mini Chrome Extension
+You can test the latest app on https://chrome.google.com/webstore/detail/happytimer/bkcggbpngjdhpoonkjabhopfpaoipfdj
+
 # React Chrome Extension
 We have open sourced the boilerplate of chrome extension with ReactJs using inject page strategy. Read [detailed blog](https://medium.com/@satendra02/create-chrome-extension-with-reactjs-using-inject-page-strategy-137650de1f39)
 
