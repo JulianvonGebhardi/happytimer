@@ -1,9 +1,10 @@
 /**
  * content.js - Entry point for content script
  * Injects the timer UI into web pages
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './content/app';
@@ -15,7 +16,7 @@ const style = document.createElement('style');
 style.type = 'text/css';
 style.textContent = `@font-face { 
   font-family: poppins; 
-  src: url("${chrome.runtime.getURL(poppinsRegular)}"); 
+  src: url("${browser.runtime.getURL(poppinsRegular)}"); 
 }`;
 document.head.appendChild(style);
 

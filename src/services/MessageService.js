@@ -1,9 +1,10 @@
 /**
- * MessageService - Handles Chrome extension messaging
+ * MessageService - Handles browser extension messaging
  * Provides a clean interface for sending and receiving messages
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 
 class MessageService {
   constructor() {
@@ -15,7 +16,7 @@ class MessageService {
    * Initialize message listener
    */
   init() {
-    chrome.runtime.onMessage.addListener(this.messageListener);
+    browser.runtime.onMessage.addListener(this.messageListener);
   }
 
   /**
@@ -23,7 +24,7 @@ class MessageService {
    */
   destroy() {
     if (this.messageListener) {
-      chrome.runtime.onMessage.removeListener(this.messageListener);
+      browser.runtime.onMessage.removeListener(this.messageListener);
     }
   }
 
@@ -65,9 +66,9 @@ class MessageService {
    */
   static async sendMessage(message) {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      browser.runtime.sendMessage(message, (response) => {
+        if (browser.runtime.lastError) {
+          reject(new Error(browser.runtime.lastError.message));
           return;
         }
         resolve(response);
@@ -83,9 +84,9 @@ class MessageService {
    */
   static async sendMessageToTab(tabId, message) {
     return new Promise((resolve, reject) => {
-      chrome.tabs.sendMessage(tabId, message, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      browser.tabs.sendMessage(tabId, message, (response) => {
+        if (browser.runtime.lastError) {
+          reject(new Error(browser.runtime.lastError.message));
           return;
         }
         resolve(response);

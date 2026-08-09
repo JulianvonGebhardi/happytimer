@@ -3,7 +3,8 @@
  * Handles sidebar timer, popups, and user interactions
  */
 
-/* global chrome */
+
+import browser from 'webextension-polyfill';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import SideTimer from './sideTimer';
@@ -54,7 +55,7 @@ const App = () => {
     };
 
     // Add message listener
-    chrome.runtime.onMessage.addListener(handleMessage);
+    browser.runtime.onMessage.addListener(handleMessage);
     messageListenerRef.current = handleMessage;
 
     // Initial checks
@@ -64,7 +65,7 @@ const App = () => {
     // Cleanup on unmount
     return () => {
       if (messageListenerRef.current) {
-        chrome.runtime.onMessage.removeListener(messageListenerRef.current);
+        browser.runtime.onMessage.removeListener(messageListenerRef.current);
       }
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -249,7 +250,7 @@ const App = () => {
   // Play alarm sound
   const alarmAlert = useCallback(async () => {
     try {
-      const audio = new Audio(chrome.runtime.getURL(alertWav));
+      const audio = new Audio(browser.runtime.getURL(alertWav));
       await audio.play();
     } catch (error) {
       console.error('Failed to play alarm:', error);

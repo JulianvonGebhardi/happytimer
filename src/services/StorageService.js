@@ -1,21 +1,22 @@
 /**
- * StorageService - Handles all Chrome storage operations
+ * StorageService - Handles all Chrome/Firefox storage operations
  * Provides a clean interface for sync and local storage
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 
 class StorageService {
   /**
-   * Get values from chrome.storage.sync
+   * Get values from browser storage
    * @param {string|string[]} keys - Key or array of keys to retrieve
    * @returns {Promise<Object>} - Object with the retrieved values
    */
   static async get(keys) {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(keys, (result) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      browser.storage.sync.get(keys, (result) => {
+        if (browser.runtime.lastError) {
+          reject(new Error(browser.runtime.lastError.message));
           return;
         }
         resolve(result);
@@ -24,15 +25,15 @@ class StorageService {
   }
 
   /**
-   * Set values in chrome.storage.sync
+   * Set values in browser storage
    * @param {Object} items - Object with key-value pairs to store
    * @returns {Promise<void>}
    */
   static async set(items) {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.set(items, () => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      browser.storage.sync.set(items, () => {
+        if (browser.runtime.lastError) {
+          reject(new Error(browser.runtime.lastError.message));
           return;
         }
         resolve();
@@ -41,15 +42,15 @@ class StorageService {
   }
 
   /**
-   * Remove keys from chrome.storage.sync
+   * Remove keys from browser storage
    * @param {string|string[]} keys - Key or array of keys to remove
    * @returns {Promise<void>}
    */
   static async remove(keys) {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.remove(keys, () => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      browser.storage.sync.remove(keys, () => {
+        if (browser.runtime.lastError) {
+          reject(new Error(browser.runtime.lastError.message));
           return;
         }
         resolve();

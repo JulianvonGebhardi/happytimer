@@ -1,9 +1,10 @@
 /**
  * background.js - Service worker for Manifest V3
  * Handles background tasks, notifications, and message passing
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 
 // Timer check interval (1 second)
 const TIMER_CHECK_INTERVAL = 1000;
@@ -22,7 +23,7 @@ function init() {
  * Set up message listeners
  */
 function setupMessageListeners() {
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     switch (request.event) {
       case 'toggleSidebar':
         handleToggleSidebar();
@@ -44,15 +45,17 @@ function setupMessageListeners() {
  * Handle toggle sidebar message
  */
 function handleToggleSidebar() {
-  chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+  browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
     const activeTab = tabs[0];
     if (activeTab && activeTab.id) {
-      chrome.tabs.sendMessage(activeTab.id, { event: 'toggleSidebar' })
+      browser.tabs.sendMessage(activeTab.id, { event: 'toggleSidebar' })
         .catch(() => {
           // Tab might not have the content script loaded yet
           console.log('Tab not ready for message');
         });
     }
+  }).catch(error => {
+    console.error('Error in handleToggleSidebar:', error);
   });
 }
 
@@ -91,7 +94,7 @@ function setupTimerCheck() {
  */
 async function checkTimerStatus() {
   try {
-    const result = await chrome.storage.sync.get([
+    const result = await browser.storage.sync.get([
       'soundChecked',
       'notificationChecked',
       'startTime',
@@ -129,15 +132,17 @@ async function checkTimerStatus() {
 async function showNotification() {
   try {
     // Check if we have permission
-    if (Notification.permission !== 'granted') {
+    const permission = await browser.notifications.getPermissionLevel();
+    
+    if (permission !== 'granted') {
       // Request permission
-      await Notification.requestPermission();
+      await browser.notifications.requestPermission();
     }
 
-    if (Notification.permission === 'granted') {
-      await chrome.notifications.create('happytimer-expired', {
+    if (permission === 'granted' || (await browser.notifications.getPermissionLevel()) === 'granted') {
+      await browser.notifications.create('happytimer-expired', {
         type: 'basic',
-        iconUrl: chrome.runtime.getURL('happy-timer-icon.svg'),
+        iconUrl: browser.runtime.getURL('happy-timer-icon.svg'),
         title: 'Your time has run out',
         message: 'Great work!\nYour focus session is over.'
       });
@@ -152,19 +157,19 @@ async function showNotification() {
  */
 async function triggerAlert() {
   try {
-    const tabs = await chrome.tabs.query({ currentWindow: true, active: true });
+    const tabs = await browser.tabs.query({ currentWindow: true, active: true });
     const activeTab = tabs[0];
     
     if (activeTab && activeTab.id && activeTab.url) {
       const urlParts = activeTab.url.split('://');
       if (urlParts[0] === 'http' || urlParts[0] === 'https') {
-        await chrome.storage.sync.set({
+        await browser.storage.sync.set({
           startTime: 0,
           timerRunning: false,
           timeLength: 0
         });
         
-        await chrome.tabs.sendMessage(activeTab.id, { event: 'alert' });
+        await browser.tabs.sendMessage(activeTab.id, { event: 'alert' });
       }
     }
   } catch (error) {
@@ -177,19 +182,19 @@ async function triggerAlert() {
  */
 async function finishTimer() {
   try {
-    const tabs = await chrome.tabs.query({ currentWindow: true, active: true });
+    const tabs = await browser.tabs.query({ currentWindow: true, active: true });
     const activeTab = tabs[0];
     
     if (activeTab && activeTab.id && activeTab.url) {
       const urlParts = activeTab.url.split('://');
       if (urlParts[0] === 'http' || urlParts[0] === 'https') {
-        await chrome.storage.sync.set({
+        await browser.storage.sync.set({
           startTime: 0,
           timerRunning: false,
           timeLength: 0
         });
         
-        await chrome.tabs.sendMessage(activeTab.id, { event: 'finishTimer' });
+        await browser.tabs.sendMessage(activeTab.id, { event: 'finishTimer' });
       }
     }
   } catch (error) {
@@ -201,9 +206,9 @@ async function finishTimer() {
  * Set up notification listeners
  */
 function setupNotificationListeners() {
-  chrome.notifications.onClosed.addListener(() => {
+  browser.notifications.onClosed.addListener(() => {
     // Clear timer when notification is closed
-    chrome.storage.sync.set({
+    browser.storage.sync.set({
       startTime: 0,
       timerRunning: false,
       timeLength: 0
@@ -217,22 +222,24 @@ function setupNotificationListeners() {
 init();
 
 // Handle service worker installation
-chrome.runtime.onInstalled.addListener((details) => {
+browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('HappyTimer installed');
     // Set default settings on first install
-    chrome.storage.sync.get(['sidebarChecked'], (result) => {
+    browser.storage.sync.get(['sidebarChecked']).then((result) => {
       if (result.sidebarChecked === undefined) {
-        chrome.storage.sync.set({ sidebarChecked: true });
+        browser.storage.sync.set({ sidebarChecked: true });
       }
+    }).catch(error => {
+      console.error('Error setting default settings:', error);
     });
   } else if (details.reason === 'update') {
-    console.log('HappyTimer updated to version', chrome.runtime.getManifest().version);
+    console.log('HappyTimer updated to version', browser.runtime.getManifest().version);
   }
 });
 
 // Cleanup on service worker shutdown
-chrome.runtime.onSuspend.addListener(() => {
+browser.runtime.onSuspend.addListener(() => {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;

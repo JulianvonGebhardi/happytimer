@@ -1,6 +1,7 @@
 /**
  * useTimer - Custom hook for timer functionality
  * Manages timer state, calculations, and updates
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';

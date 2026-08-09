@@ -1,7 +1,7 @@
 {
   "name": "happytimer",
   "version": "2.0.0",
-  "description": "HappyTimer Chrome Extension - Stay ahead of your time and break out of addictive software features and brain fatigue",
+  "description": "HappyTimer Browser Extension - Stay ahead of your time and break out of addictive software features and brain fatigue",
   "private": true,
   "dependencies": {
     "@babel/core": "^7.22.0",
@@ -36,18 +36,31 @@
     "style-loader": "^3.3.3",
     "sw-precache-webpack-plugin": "^0.11.5",
     "url-loader": "^4.1.1",
+    "webextension-polyfill": "^0.10.0",
     "webpack": "^5.88.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
     "webpack-manifest-plugin": "^5.0.0",
     "whatwg-fetch": "^3.6.17"
   },
+  "devDependencies": {
+    "web-ext": "^7.6.0"
+  },
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
+    "build:chrome": "BROWSER=chrome node scripts/build.js",
+    "build:firefox": "BROWSER=firefox node scripts/build.js",
+    "build:all": "npm run build:chrome && npm run build:firefox",
     "test": "node scripts/test.js --env=jsdom",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "lint:firefox": "web-ext lint --source-dir build/firefox",
+    "run:firefox": "web-ext run --source-dir build/firefox",
+    "sign:firefox": "web-ext sign --source-dir build/firefox",
+    "package:chrome": "npm run build:chrome && cd build/chrome && zip -r ../happytimer-chrome.zip .",
+    "package:firefox": "npm run build:firefox && cd build/firefox && zip -r ../happytimer-firefox.zip .",
+    "package:all": "npm run package:chrome && npm run package:firefox"
   },
   "jest": {
     "collectCoverageFrom": [

@@ -18,7 +18,7 @@ const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const webpack = require('webpack');
-const config = require('../config/webpack.config.prod');
+const configFactory = require('../config/webpack.config.prod');
 const paths = require('../config/paths');
 const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages');
@@ -35,6 +35,19 @@ const useYarn = fs.existsSync(paths.yarnLockFile);
 const WARN_AFTER_BUNDLE_GZIP_SIZE = 512 * 1024;
 const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 
+// Get target browser from environment variable
+const targetBrowser = process.env.BROWSER || 'chrome';
+
+// Validate browser
+const validBrowsers = ['chrome', 'firefox'];
+if (!validBrowsers.includes(targetBrowser)) {
+  console.error(chalk.red(`Invalid browser: ${targetBrowser}. Use one of: ${validBrowsers.join(', ')}`));
+  process.exit(1);
+}
+
+// Set output directory based on browser
+const outputDir = path.resolve(paths.appBuild, targetBrowser);
+
 // Warn and crash if required files are missing
 if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
@@ -42,17 +55,24 @@ if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
 
 // First, read the current file sizes in build directory.
 // This lets us display how much they changed later.
-measureFileSizesBeforeBuild(paths.appBuild)
+measureFileSizesBeforeBuild(outputDir)
   .then(previousFileSizes => {
     // Remove all content but keep the directory so that
     // if you're in it, you don't end up in Trash
-    fs.emptyDirSync(paths.appBuild);
+    fs.emptyDirSync(outputDir);
+    
+    // Generate browser-specific manifest
+    const { generateManifest } = require('./generate-manifest');
+    generateManifest(targetBrowser, outputDir);
+    
     // Merge with the public folder
-    copyPublicFolder();
+    copyPublicFolder(outputDir);
+    
     // Copy background service worker
-    copyBackgroundFile();
+    copyBackgroundFile(outputDir);
+    
     // Start the webpack build
-    return build(previousFileSizes);
+    return build(previousFileSizes, outputDir);
   })
   .then(
     ({ stats, previousFileSizes, warnings }) => {
@@ -70,14 +90,14 @@ measureFileSizesBeforeBuild(paths.appBuild)
             ' to the line before.\n'
         );
       } else {
-        console.log(chalk.green('Compiled successfully.\n'));
+        console.log(chalk.green(`Compiled successfully for ${targetBrowser}.\n`));
       }
 
       console.log('File sizes after gzip:\n');
       printFileSizesAfterBuild(
         stats,
         previousFileSizes,
-        paths.appBuild,
+        outputDir,
         WARN_AFTER_BUNDLE_GZIP_SIZE,
         WARN_AFTER_CHUNK_GZIP_SIZE
       );
@@ -86,7 +106,7 @@ measureFileSizesBeforeBuild(paths.appBuild)
       const appPackage = require(paths.appPackageJson);
       const publicUrl = paths.publicUrl;
       const publicPath = config.output.publicPath;
-      const buildFolder = path.relative(process.cwd(), paths.appBuild);
+      const buildFolder = path.relative(process.cwd(), outputDir);
       printHostingInstructions(
         appPackage,
         publicUrl,
@@ -103,8 +123,11 @@ measureFileSizesBeforeBuild(paths.appBuild)
   );
 
 // Create the production build and print the deployment instructions.
-function build(previousFileSizes) {
-  console.log('Creating an optimized production build...');
+function build(previousFileSizes, outputDir) {
+  console.log(`Creating an optimized production build for ${targetBrowser}...`);
+
+  // Get browser-specific webpack config
+  const config = configFactory({ target: targetBrowser, outputDir });
 
   let compiler = webpack(config);
   return new Promise((resolve, reject) => {
@@ -144,23 +167,23 @@ function build(previousFileSizes) {
   });
 }
 
-function copyPublicFolder() {
-  fs.copySync(paths.appPublic, paths.appBuild, {
+function copyPublicFolder(outputDir) {
+  fs.copySync(paths.appPublic, outputDir, {
     dereference: true,
     filter: file => file !== paths.appHtml,
   });
 }
 
-function copyBackgroundFile() {
+function copyBackgroundFile(outputDir) {
   const backgroundPath = path.resolve(paths.appSrc, 'background.js');
-  const destPath = path.resolve(paths.appBuild, 'app', 'background.js');
+  const destPath = path.resolve(outputDir, 'app', 'background.js');
   
   try {
     // Ensure the app directory exists
-    fs.ensureDirSync(path.resolve(paths.appBuild, 'app'));
+    fs.ensureDirSync(path.resolve(outputDir, 'app'));
     // Copy the background service worker
     fs.copySync(backgroundPath, destPath);
-    console.log('Copied background.js to build directory');
+    console.log(`Copied background.js to ${destPath}`);
   } catch (error) {
     console.error('Error copying background.js:', error);
   }

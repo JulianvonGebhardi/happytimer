@@ -1,9 +1,10 @@
 /**
  * TimerService - Handles all timer-related logic
  * Provides timer calculations, formatting, and management
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 
 class TimerService {
   /**
@@ -112,7 +113,7 @@ class TimerService {
    */
   static async playAlert() {
     try {
-      const audio = new Audio(chrome.runtime.getURL('/static/media/alert.wav'));
+      const audio = new Audio(browser.runtime.getURL('/static/media/alert.wav'));
       await audio.play();
     } catch (error) {
       console.error('Failed to play alert sound:', error);
@@ -126,16 +127,21 @@ class TimerService {
    * @returns {Promise<void>}
    */
   static async showNotification(title, message) {
-    if (!('Notification' in window)) return;
-    
     try {
-      // Request permission if not granted
-      if (Notification.permission !== 'granted') {
-        await Notification.requestPermission();
+      // Check permission
+      const permission = await browser.notifications.getPermissionLevel();
+      
+      if (permission !== 'granted') {
+        await browser.notifications.requestPermission();
       }
       
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body: message });
+      if (permission === 'granted' || (await browser.notifications.getPermissionLevel()) === 'granted') {
+        await browser.notifications.create({
+          type: 'basic',
+          iconUrl: browser.runtime.getURL('/static/media/happy-timer-icon.svg'),
+          title,
+          message
+        });
       }
     } catch (error) {
       console.error('Failed to show notification:', error);

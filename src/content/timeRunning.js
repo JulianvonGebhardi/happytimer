@@ -3,7 +3,7 @@
  * Allows users to see remaining time and modify it
  */
 
-/* global chrome */
+import browser from 'webextension-polyfill';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TimerService from '../services/TimerService';
 import StorageService from '../services/StorageService';

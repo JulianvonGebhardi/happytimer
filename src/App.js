@@ -1,10 +1,11 @@
 /**
  * App - Main popup component for the HappyTimer extension
  * Handles settings and timer display in the extension popup
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
-/* global chrome */
 import React, { useEffect, useState, useCallback } from 'react';
+import browser from 'webextension-polyfill';
 import Switch from 'react-switch';
 import logo from './happy-timer-logo.svg';
 import iconsettings from './Icon-settings.svg';
@@ -25,7 +26,7 @@ const App = () => {
     getSeconds 
   } = useTimer();
 
-  const [version] = useState('1.0');
+  const [version] = useState('2.0.0');
 
   // Handle timer expiration check
   useEffect(() => {
@@ -84,7 +85,7 @@ const App = () => {
       <div className="popup_container">
         <div 
           className="extensionLogo" 
-          style={{ backgroundImage: `url(${chrome.runtime.getURL(logo)})` }}
+          style={{ backgroundImage: `url(${browser.runtime.getURL(logo)})` }}
         />
         <div className="extensionVersion">Version {version}</div>
         
@@ -156,7 +157,8 @@ const App = () => {
             href="https://airtable.com/shrpzD6EmFLs6R2sK"
             onClick={(e) => {
               e.preventDefault();
-              chrome.tabs.create({ 
+              // Use browser.tabs for cross-browser compatibility
+              browser.tabs.create({ 
                 url: 'https://airtable.com/shrpzD6EmFLs6R2sK' 
               });
             }}
@@ -165,11 +167,13 @@ const App = () => {
           </a>
           <div 
             className="settings" 
-            style={{ backgroundImage: `url(${chrome.runtime.getURL(iconsettings)})` }}
+            style={{ backgroundImage: `url(${browser.runtime.getURL(iconsettings)})` }}
             onClick={() => {
-              chrome.tabs.create({ 
-                url: 'chrome://extensions/?options=' + chrome.runtime.id 
-              });
+              // Use browser.runtime for cross-browser compatibility
+              const optionsUrl = process.env.IS_FIREFOX 
+                ? 'about:addons' 
+                : 'chrome://extensions/?options=' + browser.runtime.id;
+              browser.tabs.create({ url: optionsUrl });
             }}
           />
         </div>

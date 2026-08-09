@@ -1,6 +1,7 @@
 /**
  * useSettings - Custom hook for managing extension settings
  * Handles sidebar, sound, and notification settings
+ * Uses webextension-polyfill for cross-browser compatibility
  */
 
 import { useState, useEffect, useCallback } from 'react';
