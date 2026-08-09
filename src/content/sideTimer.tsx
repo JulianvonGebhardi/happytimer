@@ -1,27 +1,49 @@
 /**
  * SideTimer - Timer icon shown in the sidebar
- * Handles drag and drop positioning
+ * Handles drag and drop positioning with improved implementation
  */
 
 import React from 'react';
 
-const SideTimer = ({
+interface SideTimerProps {
+  openMainPopup: (e: React.MouseEvent<SVGElement>) => void;
+  isOpen: boolean;
+  dragHandlers?: {
+    onMouseDown: (e: React.MouseEvent) => void;
+    onMouseMove: (e: React.MouseEvent) => void;
+    onMouseUp: (e: React.MouseEvent) => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchMove: (e: React.TouchEvent) => void;
+    onTouchEnd: (e: React.TouchEvent) => void;
+  };
+  dragStyle?: {
+    top: string;
+    cursor: string;
+    transition: string;
+  };
+}
+
+const SideTimer: React.FC<SideTimerProps> = ({
   openMainPopup,
-  startPosition,
-  getCurrentPosition,
-  mouseUp,
   isOpen,
-  ...props
+  dragHandlers = {},
+  dragStyle = {},
 }) => {
+  const { onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd } = dragHandlers;
+
   return (
     <div
       className="sideIcon timerContainer"
-      onMouseMove={getCurrentPosition}
-      onMouseDown={startPosition}
-      onMouseUp={mouseUp}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={dragStyle}
       role="button"
       aria-label="Timer"
-      {...props}
+      aria-pressed={isOpen}
     >
       <svg
         onClick={openMainPopup}

@@ -3,11 +3,16 @@
  * Provides options to start another timer or stop
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, KeyboardEvent, MouseEvent } from 'react';
 
-const RunOutPopup = ({ closeRunOutPopup, addAnother }) => {
+interface RunOutPopupProps {
+  closeRunOutPopup: () => void;
+  addAnother: () => void;
+}
+
+const RunOutPopup: React.FC<RunOutPopupProps> = ({ closeRunOutPopup, addAnother }) => {
   // Close on escape key
-  const handleKeyDown = useCallback((e) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       closeRunOutPopup();
     }
@@ -24,7 +29,7 @@ const RunOutPopup = ({ closeRunOutPopup, addAnother }) => {
     >
       <div 
         className="popupContainer" 
-        onClick={(e) => { e.stopPropagation(); }}
+        onClick={(e: MouseEvent<HTMLDivElement>) => { e.stopPropagation(); }}
         role="document"
       >
         <div className="closePopup">

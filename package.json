@@ -12,7 +12,7 @@
     "css-loader": "^6.8.1",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
-    "eslint": "^8.46.0",
+    "eslint": "^7.32.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-flowtype": "^8.0.3",
@@ -44,6 +44,12 @@
     "whatwg-fetch": "^3.6.17"
   },
   "devDependencies": {
+    "@types/node": "^20.5.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/webextension-polyfill": "^0.10.0",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.0.4",
     "web-ext": "^7.6.0"
   },
   "scripts": {
@@ -60,28 +66,30 @@
     "sign:firefox": "web-ext sign --source-dir build/firefox",
     "package:chrome": "npm run build:chrome && cd build/chrome && zip -r ../happytimer-chrome.zip .",
     "package:firefox": "npm run build:firefox && cd build/firefox && zip -r ../happytimer-firefox.zip .",
-    "package:all": "npm run package:chrome && npm run package:firefox"
+    "package:all": "npm run package:chrome && npm run package:firefox",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch"
   },
   "jest": {
     "collectCoverageFrom": [
-      "src/**/*.{js,jsx,mjs}"
+      "src/**/*.{js,jsx,ts,tsx}"
     ],
     "setupFiles": [
       "<rootDir>/config/polyfills.js"
     ],
     "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.{js,jsx,mjs}",
-      "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,mjs}"
+      "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+      "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
     ],
     "testEnvironment": "jsdom",
     "testURL": "http://localhost",
     "transform": {
-      "^.+\\.(js|jsx|mjs)$": "<rootDir>/node_modules/babel-jest",
+      "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",
       "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
-      "^(?!.*\\.(js|jsx|mjs|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
+      "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
     },
     "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs)$"
+      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$"
     ],
     "moduleNameMapper": {
       "^react-native$": "react-native-web"
@@ -92,6 +100,8 @@
       "json",
       "web.jsx",
       "jsx",
+      "ts",
+      "tsx",
       "node",
       "mjs"
     ]

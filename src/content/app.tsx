@@ -1,11 +1,11 @@
 /**
  * App - Main component for the injected timer UI
  * Handles sidebar timer, popups, and user interactions
+ * Uses improved drag and drop with useSideIconDrag hook
  */
 
-
-import browser from 'webextension-polyfill';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import browser from 'webextension-polyfill';
 import ErrorBoundary from '../components/ErrorBoundary';
 import SideTimer from './sideTimer';
 import MainPopup from './mainPopup';
@@ -17,9 +17,22 @@ import alertWav from '../alert.wav';
 import StorageService from '../services/StorageService';
 import TimerService from '../services/TimerService';
 import MessageService from '../services/MessageService';
+import { useSideIconDrag } from '../hooks/useSideIconDrag';
 
-const App = () => {
-  const [state, setState] = useState({
+interface AppState {
+  sidebarTimer: boolean;
+  mainPopup: boolean;
+  timeRunning: boolean;
+  runOut: boolean;
+  timerRunning: boolean;
+  startTime: number;
+  timeLength: number;
+  currentTime: number;
+  isOpen: boolean;
+}
+
+const App: React.FC = () => {
+  const [state, setState] = useState<AppState>({
     sidebarTimer: false,
     mainPopup: false,
     timeRunning: false,
@@ -28,28 +41,40 @@ const App = () => {
     startTime: 0,
     timeLength: 0,
     currentTime: Date.now(),
-    mouseStart: null,
-    mouseCurrent: null,
-    mouseDiff: 0,
-    mouseDown: false,
-    lastHeight: null,
-    mouseLastStart: null,
-    mousePressed: false,
     isOpen: false,
   });
 
-  const messageListenerRef = useRef(null);
-  const timerRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const messageListenerRef = useRef<((request: any, sender: any, sendResponse: (response?: any) => void) => boolean | Promise<boolean>) | null>(null);
+
+  // Use improved drag and drop for side icons
+  const sideArrowDrag = useSideIconDrag({
+    storageKey: 'sideArrowPosition',
+    minY: -200,
+    maxY: 200,
+  });
+
+  const sideTimerDrag = useSideIconDrag({
+    storageKey: 'sideTimerPosition',
+    minY: -200,
+    maxY: 200,
+  });
 
   // Initialize message listener
   useEffect(() => {
-    const handleMessage = (request, sender, sendResponse) => {
-      if (request.event === 'toggleSidebar') {
-        checkSidebarStatus();
-      } else if (request.event === 'alert') {
-        handleAlert();
-      } else if (request.event === 'finishTimer') {
-        handleFinishTimer();
+    const handleMessage = (request: { event: string }, sender: any, sendResponse: (response?: any) => void): boolean => {
+      switch (request.event) {
+        case 'toggleSidebar':
+          checkSidebarStatus();
+          break;
+        case 'alert':
+          handleAlert();
+          break;
+        case 'finishTimer':
+          handleFinishTimer();
+          break;
+        default:
+          break;
       }
       return true;
     };
@@ -162,22 +187,21 @@ const App = () => {
   }, []);
 
   // Open main popup
-  const openMainPopup = useCallback(async (e) => {
+  const openMainPopup = useCallback((e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (state.mousePressed) return;
+    if (state.isOpen) return;
 
-    try {
-      const result = await StorageService.get(['timerRunning']);
+    StorageService.get(['timerRunning']).then((result) => {
       if (result.timerRunning) {
         closeMainPopup();
         openTimeRunning();
       } else {
         setState(prev => ({ ...prev, mainPopup: true, isOpen: true }));
       }
-    } catch (error) {
+    }).catch(error => {
       console.error('Failed to check timer running status:', error);
-    }
-  }, [state.mousePressed]);
+    });
+  }, [state.isOpen]);
 
   // Open time running popup
   const openTimeRunning = useCallback(() => {
@@ -216,7 +240,7 @@ const App = () => {
   }, []);
 
   // Set timer
-  const setTimer = useCallback(async (time) => {
+  const setTimer = useCallback(async (time: string) => {
     const currentTime = Date.now();
     const roundedTime = TimerService.roundTime(time);
 
@@ -298,95 +322,14 @@ const App = () => {
     return (9 - Math.min(progress, 9)) / 10;
   }, [state.currentTime, state.startTime]);
 
-  // Mouse position handlers
-  const getCurrentPosition = useCallback((e) => {
-    if (!state.mouseDown) return;
-    
-    if (!state.mousePressed) {
-      setState(prev => ({ ...prev, mousePressed: true }));
-    }
-
-    const el = e.target.closest('.sideIcon');
-    if (!el) return;
-
-    setState(prev => ({
-      ...prev,
-      mouseCurrent: e.pageY,
-    }));
-
-    getMouseDiff();
-
-    if (state.lastHeight !== null) {
-      el.setAttribute(
-        'style',
-        `top: calc(((50% - 30px) - ${state.lastHeight}px) - ${state.mouseDiff}px) !important;`
-      );
-    } else {
-      el.setAttribute(
-        'style',
-        `top: calc((50% - 30px) - ${state.mouseDiff}px) !important;`
-      );
-    }
-  }, [state.mouseDown, state.mousePressed, state.lastHeight, state.mouseDiff]);
-
-  const startPosition = useCallback((e) => {
-    e.preventDefault();
-    const el = e.target.closest('.sideIcon');
-    if (!el) return;
-
-    if (state.mouseDown === false) {
-      if (!state.mouseStart) {
-        setState(prev => ({
-          ...prev,
-          mouseStart: e.pageY,
-          mouseCurrent: e.pageY,
-        }));
-      }
-    }
-
-    setState(prev => ({ ...prev, mouseDown: true }));
-
-    setTimeout(() => {
-      if (state.mouseDown) {
-        el.classList.add('drag');
-      }
-    }, 150);
-  }, [state.mouseDown, state.mouseStart]);
-
-  const mouseUp = useCallback((e) => {
-    e.preventDefault();
-    const el = e.target.closest('.sideIcon');
-    if (!el) return;
-
-    el.classList.remove('drag');
-
-    if (state.mouseDown === true) {
-      setState(prev => ({
-        ...prev,
-        mouseLastStart: prev.mouseStart,
-        mouseStart: e.pageY,
-        mouseDown: false,
-        mouseEnd: prev.mouseDiff,
-        mouseDiff: 0,
-        lastHeight: (prev.lastHeight || 0) + prev.mouseDiff,
-      }));
-
-      setTimeout(() => {
-        setState(prev => ({ ...prev, mousePressed: false }));
-      }, 100);
-    }
-  }, [state.mouseDown]);
-
-  const getMouseDiff = useCallback(() => {
-    const start = state.mouseStart || state.mouseCurrent;
-    setState(prev => ({
-      ...prev,
-      mouseDiff: (Number(start) - Number(prev.mouseCurrent)) * 1.001,
-    }));
-  }, [state.mouseStart, state.mouseCurrent]);
-
   // Check if timer should be running
-  const shouldShowTimerAnimation = state.timerRunning && getOP() > 0;
+  const shouldShowTimerAnimation: boolean = state.timerRunning && getOP() > 0;
+
+  // Sync isOpen state with side icon drag hooks
+  useEffect(() => {
+    sideArrowDrag.setIsOpen(state.isOpen);
+    sideTimerDrag.setIsOpen(state.isOpen);
+  }, [state.isOpen, sideArrowDrag, sideTimerDrag]);
 
   return (
     <ErrorBoundary>
@@ -394,10 +337,9 @@ const App = () => {
         {state.sidebarTimer && (
           <SideTimer
             openMainPopup={openMainPopup}
-            startPosition={startPosition}
-            getCurrentPosition={getCurrentPosition}
-            mouseUp={mouseUp}
             isOpen={state.isOpen}
+            dragHandlers={sideTimerDrag.handlers}
+            dragStyle={sideTimerDrag.style}
           />
         )}
 
@@ -425,13 +367,11 @@ const App = () => {
 
         {!state.sidebarTimer && (
           <SideArrow
-            draggable="true"
-            startPosition={startPosition}
-            getCurrentPosition={getCurrentPosition}
-            mouseUp={mouseUp}
+            isOpen={state.isOpen}
             openMainPopup={openMainPopup}
             closeAll={closeAll}
-            isOpen={state.isOpen}
+            dragHandlers={sideArrowDrag.handlers}
+            dragStyle={sideArrowDrag.style}
           />
         )}
 

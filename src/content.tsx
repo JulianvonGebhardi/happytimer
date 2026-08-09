@@ -1,5 +1,5 @@
 /**
- * content.js - Entry point for content script
+ * content.tsx - Entry point for content script
  * Injects the timer UI into web pages
  * Uses webextension-polyfill for cross-browser compatibility
  */

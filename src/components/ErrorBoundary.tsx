@@ -3,10 +3,22 @@
  * Prevents the entire extension UI from crashing
  */
 
-import React, { Component } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
-class ErrorBoundary extends Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -15,11 +27,11 @@ class ErrorBoundary extends Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error, errorInfo: null };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
       error,
@@ -32,7 +44,7 @@ class ErrorBoundary extends Component {
     }
   }
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       return (
         <div
@@ -54,27 +66,27 @@ class ErrorBoundary extends Component {
           <details style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
             <summary style={{ cursor: 'pointer', color: '#7f3f3f' }}>Error details</summary>
             <p>{this.state.error && this.state.error.toString()}</p>
-            <p>{this.state.errorInfo && this.state.errorInfo.componentStack}</p>
+            <p>{this.state.errorInfo?.componentStack}</p>
           </details>
-          <button
-            onClick={() => {
-              this.setState({ hasError: false, error: null, errorInfo: null });
-              if (this.props.onReset) {
+          {this.props.onReset && (
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null, errorInfo: null });
                 this.props.onReset();
-              }
-            }}
-            style={{
-              marginTop: '15px',
-              padding: '8px 16px',
-              backgroundColor: '#d32f2f',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Try Again
-          </button>
+              }}
+              style={{
+                marginTop: '15px',
+                padding: '8px 16px',
+                backgroundColor: '#d32f2f',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Try Again
+            </button>
+          )}
         </div>
       );
     }

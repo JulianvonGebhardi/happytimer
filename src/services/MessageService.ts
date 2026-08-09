@@ -5,8 +5,12 @@
  */
 
 import browser from 'webextension-polyfill';
+import { ExtensionMessage, MessageEvent } from '../types';
 
 class MessageService {
+  private listeners: Map<MessageEvent, (request: any, sender: any, sendResponse: (response?: any) => void) => void>;
+  private messageListener: (request: any, sender: any, sendResponse: (response?: any) => void) => boolean | Promise<boolean>;
+
   constructor() {
     this.listeners = new Map();
     this.messageListener = this.handleMessage.bind(this);
@@ -15,14 +19,14 @@ class MessageService {
   /**
    * Initialize message listener
    */
-  init() {
+  init(): void {
     browser.runtime.onMessage.addListener(this.messageListener);
   }
 
   /**
    * Cleanup message listener
    */
-  destroy() {
+  destroy(): void {
     if (this.messageListener) {
       browser.runtime.onMessage.removeListener(this.messageListener);
     }
@@ -30,43 +34,48 @@ class MessageService {
 
   /**
    * Handle incoming messages
-   * @param {Object} request - Message request
-   * @param {Object} sender - Message sender
-   * @param {Function} sendResponse - Response callback
+   * @param request - Message request
+   * @param sender - Message sender
+   * @param sendResponse - Response callback
+   * @returns True to indicate async response
    */
-  handleMessage(request, sender, sendResponse) {
+  private handleMessage(
+    request: ExtensionMessage,
+    sender: any,
+    sendResponse: (response?: any) => void
+  ): boolean {
     const listener = this.listeners.get(request.event);
     if (listener) {
-      return listener(request, sender, sendResponse);
+      return listener(request, sender, sendResponse) as boolean;
     }
     return true;
   }
 
   /**
    * Add a message listener for a specific event
-   * @param {string} event - Event name
-   * @param {Function} callback - Callback function
+   * @param event - Event name
+   * @param callback - Callback function
    */
-  on(event, callback) {
+  on(event: MessageEvent, callback: (request: any, sender: any, sendResponse: (response?: any) => void) => void): void {
     this.listeners.set(event, callback);
   }
 
   /**
    * Remove a message listener
-   * @param {string} event - Event name
+   * @param event - Event name
    */
-  off(event) {
+  off(event: MessageEvent): void {
     this.listeners.delete(event);
   }
 
   /**
    * Send a message to the background script
-   * @param {Object} message - Message to send
-   * @returns {Promise<Object>} - Response from background script
+   * @param message - Message to send
+   * @returns Promise with the response from background script
    */
-  static async sendMessage(message) {
-    return new Promise((resolve, reject) => {
-      browser.runtime.sendMessage(message, (response) => {
+  static async sendMessage<T = any>(message: ExtensionMessage): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      browser.runtime.sendMessage(message, (response: T) => {
         if (browser.runtime.lastError) {
           reject(new Error(browser.runtime.lastError.message));
           return;
@@ -78,13 +87,13 @@ class MessageService {
 
   /**
    * Send a message to a specific tab
-   * @param {number} tabId - Tab ID
-   * @param {Object} message - Message to send
-   * @returns {Promise<Object>}
+   * @param tabId - Tab ID
+   * @param message - Message to send
+   * @returns Promise with the response from the tab
    */
-  static async sendMessageToTab(tabId, message) {
-    return new Promise((resolve, reject) => {
-      browser.tabs.sendMessage(tabId, message, (response) => {
+  static async sendMessageToTab<T = any>(tabId: number, message: ExtensionMessage): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      browser.tabs.sendMessage(tabId, message, (response: T) => {
         if (browser.runtime.lastError) {
           reject(new Error(browser.runtime.lastError.message));
           return;

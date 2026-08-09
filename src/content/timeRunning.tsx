@@ -3,13 +3,30 @@
  * Allows users to see remaining time and modify it
  */
 
-import browser from 'webextension-polyfill';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, KeyboardEvent, MouseEvent, FormEvent } from 'react';
 import TimerService from '../services/TimerService';
 import StorageService from '../services/StorageService';
 
-const TimeRunning = ({ closeTimeRunningPopup, stopClose, setTimer }) => {
-  const [state, setState] = useState({
+interface TimeRunningProps {
+  closeTimeRunningPopup: () => void;
+  stopClose: () => void;
+  setTimer: (time: string) => void;
+}
+
+interface TimeRunningState {
+  timerRunning: boolean;
+  startTime: number;
+  timeLength: number;
+  currentTime: number;
+  timeValue: string;
+}
+
+const TimeRunning: React.FC<TimeRunningProps> = ({ 
+  closeTimeRunningPopup, 
+  stopClose, 
+  setTimer 
+}) => {
+  const [state, setState] = useState<TimeRunningState>({
     timerRunning: false,
     startTime: 0,
     timeLength: 0,
@@ -17,7 +34,7 @@ const TimeRunning = ({ closeTimeRunningPopup, stopClose, setTimer }) => {
     timeValue: '',
   });
 
-  const timerRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load timer state from storage
   useEffect(() => {
@@ -96,12 +113,12 @@ const TimeRunning = ({ closeTimeRunningPopup, stopClose, setTimer }) => {
   }, [state.startTime, state.timeLength]);
 
   // Handle input change
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, timeValue: e.target.value }));
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (state.timeValue.trim()) {
       setTimer(state.timeValue);
@@ -118,7 +135,7 @@ const TimeRunning = ({ closeTimeRunningPopup, stopClose, setTimer }) => {
   }, [state.timeValue, setTimer, closeTimeRunningPopup]);
 
   // Close on escape key
-  const handleKeyDown = useCallback((e) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       closeTimeRunningPopup();
     }
@@ -135,7 +152,7 @@ const TimeRunning = ({ closeTimeRunningPopup, stopClose, setTimer }) => {
     >
       <div 
         className="popupContainer" 
-        onClick={(e) => { e.stopPropagation(); }}
+        onClick={(e: MouseEvent<HTMLDivElement>) => { e.stopPropagation(); }}
         role="document"
       >
         <div className="closePopup">

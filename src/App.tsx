@@ -16,7 +16,7 @@ import TimerService from './services/TimerService';
 
 import './App.css';
 
-const App = () => {
+const App: React.FC = () => {
   const { settings, isLoading, error, toggleSidebar, toggleSound, toggleNotification } = useSettings();
   const { 
     timerRunning, 
@@ -26,11 +26,11 @@ const App = () => {
     getSeconds 
   } = useTimer();
 
-  const [version] = useState('2.0.0');
+  const [version] = useState<string>('2.0.0');
 
   // Handle timer expiration check
   useEffect(() => {
-    const checkTimerExpiration = async () => {
+    const checkTimerExpiration = async (): Promise<void> => {
       if (timerRunning && TimerService.isTimerExpired(startTime, timeLength)) {
         // Timer has expired, trigger notification if enabled
         if (settings.notificationChecked) {
@@ -61,7 +61,7 @@ const App = () => {
   }, [toggleNotification]);
 
   // Show timer display if timer is running and not expired
-  const showTimerDisplay = timerRunning && 
+  const showTimerDisplay: boolean = timerRunning && 
     TimerService.getRemainingTime(startTime, timeLength) > 0;
 
   if (isLoading) {
@@ -155,7 +155,7 @@ const App = () => {
           <a 
             className="feedbackLink" 
             href="https://airtable.com/shrpzD6EmFLs6R2sK"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
               e.preventDefault();
               // Use browser.tabs for cross-browser compatibility
               browser.tabs.create({ 
@@ -170,11 +170,13 @@ const App = () => {
             style={{ backgroundImage: `url(${browser.runtime.getURL(iconsettings)})` }}
             onClick={() => {
               // Use browser.runtime for cross-browser compatibility
-              const optionsUrl = process.env.IS_FIREFOX 
+              const optionsUrl: string = process.env.IS_FIREFOX 
                 ? 'about:addons' 
-                : 'chrome://extensions/?options=' + browser.runtime.id;
+                : `chrome://extensions/?options=${browser.runtime.id}`;
               browser.tabs.create({ url: optionsUrl });
             }}
+            role="button"
+            aria-label="Extension settings"
           />
         </div>
       </div>

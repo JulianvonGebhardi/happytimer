@@ -8,15 +8,38 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import TimerService from '../services/TimerService';
 import StorageService from '../services/StorageService';
 
-const useTimer = () => {
-  const [state, setState] = useState({
+interface TimerState {
+  timerRunning: boolean;
+  startTime: number;
+  timeLength: number;
+  currentTime: number;
+}
+
+interface TimerResult extends TimerState {
+  startTimer: (durationMinutes: string | number) => Promise<void>;
+  stopTimer: () => Promise<void>;
+  isTimerActive: () => boolean;
+  getFormattedTime: () => string;
+  getMinutes: () => string;
+  getSeconds: () => string;
+  getOpacity: () => number;
+  loadTimerSettings: () => Promise<void>;
+  saveTimerSettings: () => Promise<void>;
+}
+
+/**
+ * Custom hook for managing timer functionality
+ * @returns Timer state and functions
+ */
+const useTimer = (): TimerResult => {
+  const [state, setState] = useState<TimerState>({
     timerRunning: false,
     startTime: 0,
     timeLength: 0,
     currentTime: Date.now(),
   });
 
-  const timerRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load timer settings from storage
   const loadTimerSettings = useCallback(async () => {
@@ -47,8 +70,8 @@ const useTimer = () => {
   }, [state.timerRunning, state.startTime, state.timeLength]);
 
   // Start the timer
-  const startTimer = useCallback(async (durationMinutes) => {
-    const durationSeconds = TimerService.roundTime(durationMinutes) * 60;
+  const startTimer = useCallback(async (durationMinutes: string | number) => {
+    const durationSeconds = TimerService.roundTime(durationMinutes.toString()) * 60;
     const now = Date.now();
     
     setState({
@@ -61,7 +84,7 @@ const useTimer = () => {
     await StorageService.saveTimerSettings({
       timerRunning: true,
       startTime: now,
-      timeLength: durationMinutes,
+      timeLength: typeof durationMinutes === 'string' ? durationMinutes : durationMinutes.toString(),
     });
   }, []);
 
