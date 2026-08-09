@@ -49,6 +49,8 @@ measureFileSizesBeforeBuild(paths.appBuild)
     fs.emptyDirSync(paths.appBuild);
     // Merge with the public folder
     copyPublicFolder();
+    // Copy background service worker
+    copyBackgroundFile();
     // Start the webpack build
     return build(previousFileSizes);
   })
@@ -143,9 +145,23 @@ function build(previousFileSizes) {
 }
 
 function copyPublicFolder() {
- 
   fs.copySync(paths.appPublic, paths.appBuild, {
     dereference: true,
     filter: file => file !== paths.appHtml,
   });
+}
+
+function copyBackgroundFile() {
+  const backgroundPath = path.resolve(paths.appSrc, 'background.js');
+  const destPath = path.resolve(paths.appBuild, 'app', 'background.js');
+  
+  try {
+    // Ensure the app directory exists
+    fs.ensureDirSync(path.resolve(paths.appBuild, 'app'));
+    // Copy the background service worker
+    fs.copySync(backgroundPath, destPath);
+    console.log('Copied background.js to build directory');
+  } catch (error) {
+    console.error('Error copying background.js:', error);
+  }
 }
