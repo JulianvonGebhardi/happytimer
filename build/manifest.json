@@ -1,40 +1,55 @@
 {
-  "manifest_version": 2,  
+  "manifest_version": 3,
   "name": "HappyTimer",
-  "version": "1.0",
+  "version": "2.0.0",
   "short_name": "HappyTimer",
-  "author":"Julian von Gebhardi",
-  "icons": { "16": "icon-timer.png",
-    "48": "icon-timer.png",
-   "128": "icon-timer.png" },
-  "description":"Stay ahead of your time and break out of addictive  software features and brain fatigue by using HappyTimer.",
+  "author": "Julian von Gebhardi",
+  "description": "Stay ahead of your time and break out of addictive software features and brain fatigue by using HappyTimer.",
   "homepage_url": "https://airtable.com/shrpzD6EmFLs6R2sK",
- "browser_action": {
-  "default_icon": "icon-timer.png" ,
-  "default_title": "HappyTimer",
-  "default_popup": "index.html"  
- },
-  "content_scripts" : [
+  "icons": {
+    "16": "icon-timer.png",
+    "32": "icon-timer.png",
+    "48": "icon-timer.png",
+    "128": "icon-timer.png"
+  },
+  "action": {
+    "default_icon": "icon-timer.png",
+    "default_title": "HappyTimer",
+    "default_popup": "index.html"
+  },
+  "content_scripts": [
     {
-      "matches": [ "http://*/*","https://*/*" ],
-      "css": ["/static/css/app.css"],
-      "js": ["/static/js/content.js"]
+      "matches": ["http://*/*", "https://*/*"],
+      "css": ["/static/css/content.css"],
+      "js": ["/static/js/content.js"],
+      "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources":[
-    "/static/css/content.css",
-    "/static/media/*.*",
-    "/static/fonts/*.*"
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/static/css/content.css",
+        "/static/media/*.*",
+        "/static/fonts/*.*"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
   "background": {
-    "scripts": ["/app/background.js"],
-    "persistent": true
+    "service_worker": "/app/background.js",
+    "type": "module"
   },
   "permissions": [
     "storage",
     "tabs",
-    "background",
-    "notifications"
+    "notifications",
+    "alarms"
   ],
-  "content_security_policy": "script-src 'self' 'sha256-GgRxrVOKNdB4LrRsVPDSbzvfdV4UqglmviH9GoBJ5jk='; object-src 'self'"
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'unsafe-eval'; object-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:;",
+    "sandbox": "sandbox allow-same-origin allow-scripts allow-popups allow-forms"
+  }
 }

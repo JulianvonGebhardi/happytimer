@@ -1,100 +1,93 @@
-/*global chrome*/
-import React, { Component } from 'react';
-import Switch from "react-switch";
+/**
+ * App - Main popup component for the HappyTimer extension
+ * Handles settings and timer display in the extension popup
+ */
+
+/* global chrome */
+import React, { useEffect, useState, useCallback } from 'react';
+import Switch from 'react-switch';
 import logo from './happy-timer-logo.svg';
 import iconsettings from './Icon-settings.svg';
+import ErrorBoundary from './components/ErrorBoundary';
+import useSettings from './hooks/useSettings';
+import useTimer from './hooks/useTimer';
+import TimerService from './services/TimerService';
 
 import './App.css';
 
+const App = () => {
+  const { settings, isLoading, error, toggleSidebar, toggleSound, toggleNotification } = useSettings();
+  const { 
+    timerRunning, 
+    startTime, 
+    timeLength, 
+    getMinutes, 
+    getSeconds 
+  } = useTimer();
 
-export default class App extends Component {
-  constructor() {
-    super();
-    this.state = { 
-      sidebarchecked: false,
-      soundChecked:false,
-      notificationChecked:false,
-      timerRuned:false,
-      startTime:"",
-      timeLength:0,
-      time:0
-     };
-    this.handleChangeSidebar = this.handleChangeSidebar.bind(this);
-    this.handleChangeSound = this.handleChangeSound.bind(this);
-    this.handleChangeNotification = this.handleChangeNotification.bind(this);
-  }
-  componentDidMount(){  
-    chrome.storage.sync.get(['sidebarchecked','soundChecked','notificationChecked',"startTime","timerRuned","timeLength"], (result)=> {
-      console.log(result.startTime,result.timerRuned,result.timeLength)
-      this.setState({
-        sidebarchecked: result.sidebarchecked,
-        soundChecked:result.soundChecked,
-        notificationChecked:result.notificationChecked,
-        timerRuned:result.timerRuned,
-        startTime:result.startTime,
-        timeLength:result.timeLength*60,
-        time:Date.now()
-      })
-     
-      if((Date.now()-result.startTime)/60000<result.timeLength&&result.timerRuned){        
-        this.startTimer()
+  const [version] = useState('1.0');
+
+  // Handle timer expiration check
+  useEffect(() => {
+    const checkTimerExpiration = async () => {
+      if (timerRunning && TimerService.isTimerExpired(startTime, timeLength)) {
+        // Timer has expired, trigger notification if enabled
+        if (settings.notificationChecked) {
+          await TimerService.showNotification(
+            'HappyTimer',
+            'Your timer has expired!'
+          );
+        }
+        if (settings.soundChecked) {
+          await TimerService.playAlert();
+        }
       }
-    });
-  }
+    };
 
-  startTimer(){
-   let tim= setInterval(()=>{
-      if((this.state.timeLength-((this.state.time-this.state.startTime)/1000))<=0){
-        clearInterval(tim)
-        return
-      }
-      this.setState({time:Date.now()})
-      
-    },1000);
-  }
+    checkTimerExpiration();
+  }, [timerRunning, startTime, timeLength, settings.notificationChecked, settings.soundChecked]);
 
+  const handleChangeSidebar = useCallback(async () => {
+    await toggleSidebar();
+  }, [toggleSidebar]);
 
-  handleChangeSidebar(sidebarchecked) {    
-    chrome.storage.sync.set({sidebarchecked}, ()=> {
-      chrome.runtime.sendMessage({event:"toggleSidebar"}, (response)=>{
-        this.setState({ sidebarchecked });     
-      });      
-    });
-    
-  }
+  const handleChangeSound = useCallback(async () => {
+    await toggleSound();
+  }, [toggleSound]);
 
- 
-  handleChangeSound(soundChecked) {
-    chrome.storage.sync.set({soundChecked}, ()=>{
-      this.setState({ soundChecked });
-    });
-    
-  }
+  const handleChangeNotification = useCallback(async () => {
+    await toggleNotification();
+  }, [toggleNotification]);
 
+  // Show timer display if timer is running and not expired
+  const showTimerDisplay = timerRunning && 
+    TimerService.getRemainingTime(startTime, timeLength) > 0;
 
-  handleChangeNotification(notificationChecked) {
-    chrome.storage.sync.set({notificationChecked}, ()=> {
-      this.setState({notificationChecked });
-    });
-    
-  }
-
-
-  getSeconds(){
-    let second=(60-Math.floor(((this.state.time-this.state.startTime)%(1000 * 60)) / 1000))
-    return( second<10?"0"+second:second)    
-  }
-
-  getMinute(){
-    let minute=Math.trunc((this.state.timeLength-((this.state.time-this.state.startTime)/1000))/60)
-    return( minute<10?"0"+minute:minute)  
-  }
-  
-  render() {
+  if (isLoading) {
     return (
       <div className="popup_container">
-        <div className="extensionLogo" style={{backgroundImage:`url(${chrome.runtime.getURL(logo)})` }}></div>
-        <div className="extensionVersion">Version 1.0</div>
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="popup_container">
+        <div className="error">Error: {error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <div className="popup_container">
+        <div 
+          className="extensionLogo" 
+          style={{ backgroundImage: `url(${chrome.runtime.getURL(logo)})` }}
+        />
+        <div className="extensionVersion">Version {version}</div>
+        
         <div className="extContent">
           <div className="row">
             <p className="text">Timer Sidebar Icon</p>
@@ -106,11 +99,11 @@ export default class App extends Component {
               onColor='#FAD961'
               checkedIcon={false} 
               uncheckedIcon={false}
-              onChange={this.handleChangeSidebar} 
-              checked={this.state.sidebarchecked}
-              >                
-            </Switch>
+              onChange={handleChangeSidebar} 
+              checked={settings.sidebarChecked}
+            />
           </div>
+          
           <div className="row">
             <p className="text">Sound when the timer hits zero</p>
             <Switch 
@@ -121,14 +114,13 @@ export default class App extends Component {
               onColor='#FAD961'
               checkedIcon={false} 
               uncheckedIcon={false}
-              onChange={this.handleChangeSound} 
-              checked={this.state.soundChecked}
-              >                
-            </Switch>
+              onChange={handleChangeSound} 
+              checked={settings.soundChecked}
+            />
           </div>
+          
           <div className="row">
-            <p className="text">Deskt
-             notification when timer hits zero</p>
+            <p className="text">Desktop notification when timer hits zero</p>
             <Switch 
               className="switch"
               height={17.5} 
@@ -137,36 +129,53 @@ export default class App extends Component {
               onColor='#FAD961'
               checkedIcon={false} 
               uncheckedIcon={false}
-              onChange={this.handleChangeNotification} 
-              checked={this.state.notificationChecked}
-              >                
-            </Switch>
+              onChange={handleChangeNotification} 
+              checked={settings.notificationChecked}
+            />
           </div>
         </div>
-        {console.log(this.state.timeLength, this.state.time,this.state.startTime)}
-        <div className="middleContent">
-          {
-            (this.state.timerRuned&&((this.state.timeLength-((this.state.time-this.state.startTime)/1000))>0))?null:<p className="text">
-            „The only permanent form of happiness lies in the consciousness of productivity.“
-          </p>
-          }
-          {
-            (this.state.timerRuned&&((this.state.timeLength-((this.state.time-this.state.startTime)/1000))>0))?
-            <p className="timeRuned">
-            Timer:&nbsp;
-            {this.getMinute()}: 
-            {this.getSeconds()}            
-          </p>:null
-          }
-          <p class="author">- Carl Zuckmayer</p>
-        </div>
-        <div className="feedbackContainer">
-          <a className="feedbackLink" href="https://airtable.com/shrpzD6EmFLs6R2sK" onClick={()=>{chrome.tabs.create({ 'url': 'https://airtable.com/shrpzD6EmFLs6R2sK' })}}>Send Feedback</a>
-          <div className="settings" style={{backgroundImage:`url(${chrome.runtime.getURL(iconsettings)})` }} onClick={()=>{chrome.tabs.create({ 'url': 'chrome://extensions/?options=' + chrome.runtime.id });}}></div>         
-        </div> 
-        
-      </div> 
-    );
-  }
-}
 
+        <div className="middleContent">
+          {!showTimerDisplay ? (
+            <p className="text">
+              &ldquo;The only permanent form of happiness lies in the consciousness of productivity.&rdquo;
+            </p>
+          ) : (
+            <p className="timeRuned">
+              Timer:&nbsp;
+              {getMinutes()}: 
+              {getSeconds()}
+            </p>
+          )}
+          <p className="author">- Carl Zuckmayer</p>
+        </div>
+
+        <div className="feedbackContainer">
+          <a 
+            className="feedbackLink" 
+            href="https://airtable.com/shrpzD6EmFLs6R2sK"
+            onClick={(e) => {
+              e.preventDefault();
+              chrome.tabs.create({ 
+                url: 'https://airtable.com/shrpzD6EmFLs6R2sK' 
+              });
+            }}
+          >
+            Send Feedback
+          </a>
+          <div 
+            className="settings" 
+            style={{ backgroundImage: `url(${chrome.runtime.getURL(iconsettings)})` }}
+            onClick={() => {
+              chrome.tabs.create({ 
+                url: 'chrome://extensions/?options=' + chrome.runtime.id 
+              });
+            }}
+          />
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+};
+
+export default App;
